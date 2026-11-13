@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relay by 17 Square</title>
+<meta name="description" content="Relay: connecting RMs and product specialists around a client need. BNP Paribas x NYU PMC Case Competition.">
+<meta property="og:title" content="Relay by 17 Square">
+<meta property="og:image" content="slides/10.jpg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23008f59'/><text x='16' y='23' font-size='19' font-family='Arial' font-weight='bold' fill='white' text-anchor='middle'>R</text></svg>">
+<style>
+  :root { --green:#008f59; --mint:#5ee39a; --ink:#0d2a20; --bg:#eef6f1; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  html,body { height:100%; overflow:hidden; background:var(--bg); font-family: system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; color:var(--ink); }
+  body::before { content:""; position:fixed; inset:-20%; z-index:0;
+    background: radial-gradient(40% 40% at 20% 20%, #c9eedb 0, transparent 70%),
+                radial-gradient(40% 40% at 85% 15%, #cfe3f7 0, transparent 70%),
+                radial-gradient(45% 45% at 60% 90%, #e2f4d4 0, transparent 70%);
+    animation: drift 24s ease-in-out infinite alternate; }
+  @keyframes drift { to { transform: translate(4%, -3%) rotate(4deg); } }
+
+  #stage { position:fixed; inset:0; display:grid; place-items:center; z-index:1; perspective:1600px; }
+  #deck { position:relative; width:min(96vw, calc((100vh - 96px) * 16 / 9)); aspect-ratio:16/9;
+          border-radius:14px; overflow:hidden; box-shadow:0 30px 80px -20px rgba(13,42,32,.35), 0 0 0 1px rgba(13,42,32,.06); background:#fff; }
+  .slide { position:absolute; inset:0; opacity:0; pointer-events:none; will-change: transform, opacity, filter; }
+  .slide img { width:100%; height:100%; object-fit:cover; display:block; user-select:none; -webkit-user-drag:none; }
+  .slide.active { opacity:1; pointer-events:auto; z-index:2; }
+  .slide.in-next  { animation: inNext .9s cubic-bezier(.2,.8,.2,1) both; }
+  .slide.in-prev  { animation: inPrev .9s cubic-bezier(.2,.8,.2,1) both; }
+  .slide.out-next { animation: outNext .9s cubic-bezier(.2,.8,.2,1) both; z-index:1; }
+  .slide.out-prev { animation: outPrev .9s cubic-bezier(.2,.8,.2,1) both; z-index:1; }
+  @keyframes inNext  { from { opacity:0; transform: translateX(8%) scale(1.04) rotateY(-6deg); filter: blur(8px); } to { opacity:1; transform:none; filter:none; } }
+  @keyframes inPrev  { from { opacity:0; transform: translateX(-8%) scale(1.04) rotateY(6deg); filter: blur(8px); } to { opacity:1; transform:none; filter:none; } }
+  @keyframes outNext { from { opacity:1; transform:none; } to { opacity:0; transform: translateX(-6%) scale(.94); filter: blur(6px); } }
+  @keyframes outPrev { from { opacity:1; transform:none; } to { opacity:0; transform: translateX(6%) scale(.94); filter: blur(6px); } }
+  .slide.active img { animation: breathe 14s ease-in-out .9s infinite alternate; }
+  @keyframes breathe { to { transform: scale(1.015); } }
+
+  .hotspot { position:absolute; display:block; border-radius:40px; z-index:3; }
+  .hotspot:hover { box-shadow: 0 0 0 3px var(--mint); background: rgba(94,227,154,.08); }
+
+  /* Top bar */
+  header { position:fixed; top:0; left:0; right:0; height:56px; display:flex; align-items:center; justify-content:space-between; padding:0 20px; z-index:5; }
+  .brand { font-weight:800; font-size:20px; letter-spacing:-.02em; color:var(--ink); display:flex; align-items:center; gap:10px; }
+  .brand i { width:26px; height:26px; border-radius:7px; background:linear-gradient(160deg,#2bb37a,#00703f); display:inline-block; }
+  .brand small { font-weight:500; font-size:13px; color:#4a6b5e; }
+  .proto { display:inline-flex; align-items:center; gap:8px; padding:10px 18px; border-radius:999px; background:var(--green); color:#fff;
+           text-decoration:none; font-weight:600; font-size:14px; box-shadow:0 8px 24px -8px rgba(0,143,89,.6); transition: transform .2s, box-shadow .2s; }
+  .proto:hover { transform: translateY(-2px); box-shadow:0 12px 28px -8px rgba(0,143,89,.7); }
+  .proto .dot { width:8px; height:8px; border-radius:50%; background:var(--mint); animation: pulse 1.6s infinite; }
+  @keyframes pulse { 0%{ box-shadow:0 0 0 0 rgba(94,227,154,.8);} 100%{ box-shadow:0 0 0 10px rgba(94,227,154,0);} }
+
+  /* Bottom controls */
+  footer { position:fixed; bottom:0; left:0; right:0; height:40px; display:flex; align-items:center; justify-content:center; gap:14px; z-index:5; font-size:13px; color:#4a6b5e; }
+  footer button { background:rgba(255,255,255,.75); border:1px solid rgba(13,42,32,.1); border-radius:999px; height:30px; min-width:30px; padding:0 12px; cursor:pointer; color:var(--ink); font:inherit; }
+  footer button:hover { background:#fff; }
+  #count { font-variant-numeric: tabular-nums; min-width:56px; text-align:center; }
+  #bar { position:fixed; left:0; bottom:0; height:3px; background:var(--green); z-index:6; transition: width .6s cubic-bezier(.2,.8,.2,1); }
+
+  .nav { position:fixed; top:50%; transform:translateY(-50%); z-index:4; width:48px; height:48px; border-radius:50%; border:none; cursor:pointer;
+         background:rgba(255,255,255,.8); box-shadow:0 6px 18px rgba(0,0,0,.08); font-size:22px; color:var(--ink); opacity:.0; transition:opacity .25s; }
+  body:hover .nav { opacity:1; }
+  #prev { left:14px; } #next { right:14px; }
+
+  /* Overview grid */
+  #grid { position:fixed; inset:0; z-index:8; background:rgba(238,246,241,.96); backdrop-filter: blur(8px); overflow:auto; padding:72px 24px 40px;
+          display:none; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; align-content:start; }
+  #grid.open { display:grid; animation: fade .35s both; }
+  @keyframes fade { from{opacity:0} }
+  #grid button { border:none; padding:0; background:none; cursor:pointer; text-align:left; font:inherit; color:#4a6b5e; font-size:12px; }
+  #grid img { width:100%; border-radius:8px; box-shadow:0 6px 16px -6px rgba(0,0,0,.2); transition: transform .2s; display:block; margin-bottom:6px; }
+  #grid button:hover img { transform: translateY(-3px); }
+  #grid button.cur img { outline:3px solid var(--green); }
+  #closeGrid { position:fixed; top:14px; right:20px; z-index:9; display:none; }
+  #grid.open ~ #closeGrid { display:inline-flex; }
+
+  @media (max-width: 640px) {
+    header { padding:0 16px; } .brand small { display:none; }
+    .proto { padding:8px 14px; font-size:13px; }
+    #deck { width:calc(100vw - 32px); border-radius:10px; }
+    .nav { display:none; }
+    footer .hide-sm { display:none; }
+  }
+  @media (prefers-reduced-motion: reduce) { *, *::before { animation:none !important; transition:none !important; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><i></i>Relay <small>by 17 Square · BNP Paribas × NYU PMC</small></div>
+  <a class="proto" id="protoBtn" href="https://relay-prototype-2026.netlify.app" target="_blank" rel="noopener"><span class="dot"></span>Try the prototype</a>
+</header>
+
+<div id="stage"><div id="deck"></div></div>
+<button class="nav" id="prev" aria-label="Previous slide">‹</button>
+<button class="nav" id="next" aria-label="Next slide">›</button>
+
+<footer>
+  <button id="fPrev" aria-label="Previous">←</button>
+  <span id="count">1 / 30</span>
+  <button id="fNext" aria-label="Next">→</button>
+  <button id="play" class="hide-sm">▶ Autoplay</button>
+  <button id="gridBtn">All slides</button>
+  <button id="fs" class="hide-sm">Fullscreen</button>
+</footer>
+<div id="bar"></div>
+
+<div id="grid"></div>
+<button id="closeGrid" class="proto" style="background:#0d2a20">Close</button>
+
+<script>
+  // ---- Settings: change the prototype link here if it moves ----
+  const PROTOTYPE_URL = "https://relay-prototype-2026.netlify.app";
+  const TOTAL = 30;
+  const PROTO_SLIDE = 20; // slide with link + QR code
+
+  document.getElementById('protoBtn').href = PROTOTYPE_URL;
+  const deck = document.getElementById('deck');
+  const slides = [];
+  for (let i = 1; i <= TOTAL; i++) {
+    const s = document.createElement('div');
+    s.className = 'slide';
+    const img = new Image();
+    img.src = `slides/${String(i).padStart(2,'0')}.jpg`;
+    img.alt = `Slide ${i}`;
+    img.loading = i <= 3 ? 'eager' : 'lazy';
+    img.decoding = 'async';
+    s.appendChild(img);
+    if (i === PROTO_SLIDE) {
+      // clickable areas over the link pill and the QR card (percent of 1920x1080)
+      [[190,737,707,86],[1137,272,533,571]].forEach(([x,y,w,h]) => {
+        const a = document.createElement('a');
+        a.className = 'hotspot'; a.href = PROTOTYPE_URL; a.target = '_blank'; a.rel = 'noopener';
+        a.setAttribute('aria-label','Open the Relay prototype');
+        Object.assign(a.style, { left: x/19.2+'%', top: y/10.8+'%', width: w/19.2+'%', height: h/10.8+'%' });
+        if (h > 200) a.style.borderRadius = '24px';
+        s.appendChild(a);
+      });
+    }
+    deck.appendChild(s);
+    slides.push(s);
+  }
+
+  let cur = 0, timer = null;
+  const count = document.getElementById('count'), bar = document.getElementById('bar');
+
+  function show(n, dir) {
+    n = Math.max(0, Math.min(TOTAL - 1, n));
+    if (n === cur && slides[cur].classList.contains('active')) return;
+    dir = dir || (n > cur ? 'next' : 'prev');
+    const old = slides[cur];
+    old.className = 'slide out-' + dir;
+    setTimeout(() => { if (!old.classList.contains('active')) old.className = 'slide'; }, 950);
+    cur = n;
+    slides[cur].className = 'slide active in-' + dir;
+    count.textContent = `${cur + 1} / ${TOTAL}`;
+    bar.style.width = ((cur + 1) / TOTAL * 100) + '%';
+    history.replaceState(null, '', '#' + (cur + 1));
+    // preload neighbours
+    [cur + 1, cur + 2].forEach(k => { if (slides[k]) slides[k].querySelector('img').loading = 'eager'; });
+  }
+  const next = () => show(cur + 1, 'next'), prev = () => show(cur - 1, 'prev');
+
+  const start = parseInt(location.hash.slice(1)) - 1;
+  cur = isNaN(start) ? 0 : Math.max(0, Math.min(TOTAL - 1, start));
+  slides[cur].className = 'slide active in-next';
+  count.textContent = `${cur + 1} / ${TOTAL}`;
+  bar.style.width = ((cur + 1) / TOTAL * 100) + '%';
+
+  ['prev','fPrev'].forEach(id => document.getElementById(id).onclick = prev);
+  ['next','fNext'].forEach(id => document.getElementById(id).onclick = next);
+  deck.addEventListener('click', e => { if (e.target.closest('a')) return; const r = deck.getBoundingClientRect(); (e.clientX - r.left < r.width * 0.3) ? prev() : next(); });
+
+  document.addEventListener('keydown', e => {
+    if (['ArrowRight','PageDown',' ','Enter'].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowLeft','PageUp','Backspace'].includes(e.key)) { e.preventDefault(); prev(); }
+    else if (e.key === 'Home') show(0); else if (e.key === 'End') show(TOTAL - 1);
+    else if (e.key === 'f') toggleFs(); else if (e.key === 'g' || e.key === 'Escape') toggleGrid(e.key === 'g' ? undefined : false);
+  });
+
+  let tx = null;
+  deck.addEventListener('touchstart', e => tx = e.touches[0].clientX, { passive:true });
+  deck.addEventListener('touchend', e => { if (tx === null) return; const dx = e.changedTouches[0].clientX - tx; if (Math.abs(dx) > 40) (dx < 0 ? next() : prev()); tx = null; });
+
+  const playBtn = document.getElementById('play');
+  playBtn.onclick = () => {
+    if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ Autoplay'; }
+    else { timer = setInterval(() => cur < TOTAL - 1 ? next() : (clearInterval(timer), timer = null, playBtn.textContent = '▶ Autoplay'), 6000); playBtn.textContent = '❚❚ Pause'; }
+  };
+
+  function toggleFs() { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.(); }
+  document.getElementById('fs').onclick = toggleFs;
+
+  const grid = document.getElementById('grid');
+  slides.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.innerHTML = `<img src="slides/${String(i+1).padStart(2,'0')}.jpg" loading="lazy" alt="">Slide ${i + 1}`;
+    b.onclick = () => { toggleGrid(false); show(i); };
+    grid.appendChild(b);
+  });
+  function toggleGrid(force) {
+    const open = force === undefined ? !grid.classList.contains('open') : force;
+    grid.classList.toggle('open', open);
+    [...grid.children].forEach((b, i) => b.classList.toggle('cur', i === cur));
+  }
+  document.getElementById('gridBtn').onclick = () => toggleGrid();
+  document.getElementById('closeGrid').onclick = () => toggleGrid(false);
+</script>
+</body>
+</html>
